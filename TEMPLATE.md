@@ -26,7 +26,7 @@
 
 ## Launcher (`services/metabase/railway/start.sh`)
 
-1. **Heap.** Reads the cgroup memory limit. Below 2 GB: `-Xmx` = 40% of it plus `-XX:+UseSerialGC -XX:ReservedCodeCacheSize=128m -XX:MaxDirectMemorySize=64m` (Metabase's metaspace and code cache need ~0.4–0.5 GB outside the heap). From 2 GB: 60%, capped at 2 GB (Railway's Hobby limit is 8 GB; with a 4 GB heap Metabase idled at ~1.9 GB, which users pay for). Minimum 256 MB. A `-Xmx` or `MaxRAMPercentage` in `JAVA_OPTS` wins. Below 900 MiB it logs a warning.
+1. **Heap.** Reads the cgroup memory limit. Below 2 GB: `-Xmx` = 40% of it plus `-XX:+UseSerialGC -XX:ReservedCodeCacheSize=128m -XX:MaxDirectMemorySize=64m` (Metabase's metaspace and code cache need ~0.4–0.5 GB outside the heap). From 2 GB: 60%, capped at 2 GB, with `-XX:+UseG1GC -XX:G1PeriodicGCInterval=60000 -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30` so idle heap goes back to the OS (Railway's Hobby limit is 8 GB; measured idle: 4 GB heap → ~1.9 GB, 2 GB heap → ~2.3 GB, 2 GB heap + these flags → ~1.6 GB and falling). Minimum 256 MB. A `-Xmx` or `MaxRAMPercentage` in `JAVA_OPTS` wins. Below 900 MiB it logs a warning.
    - Measured 2026-11-14: with 60% (571 MiB heap) under the Trial limit (953 MiB) the container was OOM-killed during start-up in a loop; with the small-limit settings (381 MiB heap) it starts in ~55 s, completes setup and runs sample queries.
 2. **Encryption key guard.** `MB_ENCRYPTION_SECRET_KEY` shorter than 16 characters (Metabase would refuse it) is replaced by its SHA-256, with a warning (STANDARD rule 29).
 3. Starts the image's `/app/run_metabase.sh` (unchanged: drops to the `metabase` user, `MB_JETTY_HOST=0.0.0.0`).
@@ -69,11 +69,11 @@ Helper variables use the `METABASE_` prefix, not `MB_`: Metabase maps every `MB_
 
 | Service | Idle RAM (measured) | Typical | Idle CPU |
 |---|---|---|---|
-| Metabase, Hobby limit (8 GB → 2 GB heap) | {HOBBY} | 1.5–2.5 GB | ~0.01 |
+| Metabase, Hobby limit (8 GB → 2 GB heap) | ~1.6 GB (after load, falling) | 1.5–2.5 GB | ~0.01 |
 | Metabase, Trial limit (1 GB → 381 MiB heap) | ~0.95 GB (fills the limit) | — | ~0.01 |
 | Postgres | 0.1–0.2 GB | 0.2–0.4 GB | <0.01 |
 
-Idle on Hobby ≈ {COST}/month; a team with regular dashboards ≈ $20–35/month. Trial (1 GB/service) works for light use; Free (0.5 GB/service) cannot run Metabase.
+Idle on Hobby ≈ $17–18/month; a team with regular dashboards ≈ $20–35/month. Trial (1 GB/service) works for light use; Free (0.5 GB/service) cannot run Metabase.
 
 ## Verification checklist
 

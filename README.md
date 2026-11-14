@@ -43,7 +43,7 @@ Metabase is a Java application. It stores its own data (users, questions, dashbo
 
 **Encryption key.** `MB_ENCRYPTION_SECRET_KEY` encrypts the credentials of the databases you connect. Keep it; if it changes, saved connections must be re-entered.
 
-**Memory and plans.** The launcher sizes the Java heap from the service's memory limit: below 2 GB it uses 40% of the limit with lean JVM settings, above that 60%, capped at 2 GB. Set `JAVA_OPTS=-Xmx3g` (for example) to choose it yourself. Measured on Railway: with a 1 GB limit (Trial) Metabase starts, completes setup and runs sample queries, using nearly the whole limit, so it suits light use only; on Hobby it idles at about {HOBBY}. Postgres idles at about 0.1–0.2 GB. The Free plan's 0.5 GB per service is not enough for Metabase. Hobby or Pro is recommended for teams and larger queries.
+**Memory and plans.** The launcher sizes the Java heap from the service's memory limit: below 2 GB it uses 40% of the limit with lean JVM settings, above that 60%, capped at 2 GB. Set `JAVA_OPTS=-Xmx3g` (for example) to choose it yourself. Measured on Railway: with a 1 GB limit (Trial) Metabase starts, completes setup and runs sample queries, using nearly the whole limit, so it suits light use only; on Hobby it idles at about 1.6 GB. Postgres idles at about 0.1–0.2 GB. The Free plan's 0.5 GB per service is not enough for Metabase. Hobby or Pro is recommended for teams and larger queries.
 
 **Email.** Dashboard subscriptions and alerts need SMTP (Admin settings → Email). Railway allows outbound SMTP on the Pro plan only.
 
