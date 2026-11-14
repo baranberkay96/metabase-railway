@@ -1,5 +1,7 @@
 # Deploy and Host Metabase with Railway
 
+[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/metabase-65-bi-dashboards-postgres?referralCode=20H68q)
+
 Metabase is an open-source business intelligence tool: connect your databases, ask questions with SQL or a no-code query builder, and share dashboards, alerts and embedded charts. This community template runs Metabase 65 (open-source edition) with PostgreSQL as its application database and creates the administrator for you on first start.
 
 ## About Hosting Metabase
