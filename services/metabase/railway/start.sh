@@ -11,7 +11,7 @@ HEAP_PERCENT=60
 SMALL_LIMIT_MB=2048        # below this, the JVM's non-heap memory (metaspace, code cache) needs a larger share
 SMALL_HEAP_PERCENT=40
 SMALL_JVM_FLAGS="-XX:+UseSerialGC -XX:ReservedCodeCacheSize=128m -XX:MaxDirectMemorySize=64m"
-LARGE_JVM_FLAGS="-XX:+UseG1GC -XX:G1PeriodicGCInterval=120000"   # hand unused heap back to the OS when idle
+LARGE_JVM_FLAGS="-XX:+UseG1GC -XX:G1PeriodicGCInterval=60000 -XX:MinHeapFreeRatio=10 -XX:MaxHeapFreeRatio=30"   # hand unused heap back to the OS when idle
 HEAP_MIN_MB=256
 HEAP_MAX_MB=2048
 SETUP_WAIT_SECONDS=1200
