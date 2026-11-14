@@ -1,5 +1,5 @@
 {
-  "name": "Metabase 65 BI Dashboards (Postgres)",
+  "name": "Metabase BI Dashboards (Postgres)",
   "description": "Open-source BI: SQL and no-code questions, dashboards, alerts. Postgres DB.",
   "category": "Analytics",
   "tags": [
@@ -190,5 +190,6 @@
         }
       }
     }
-  }
+  },
+  "idSeed": "Metabase 65 BI Dashboards (Postgres)"
 }

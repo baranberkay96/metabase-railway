@@ -1,8 +1,8 @@
-# Metabase 65 BI Dashboards (Postgres) — composer spec
+# Metabase BI Dashboards (Postgres) — composer spec
 
 | Field | Value |
 |---|---|
-| Listing name | **Metabase 65 BI Dashboards (Postgres)** (`65` = Metabase's own release number; tag `v0.65.4.4`) |
+| Listing name | **Metabase BI Dashboards (Postgres)** (no version label: the open-source tag is `v0.65.4.4` and a new major ships every 6-7 weeks; renamed 2026-11-14, `idSeed` keeps the original name so service ids stay stable) |
 | Description | Open-source BI: SQL and no-code questions, dashboards, alerts. Postgres DB. (75 chars) |
 | Category | Analytics |
 | Tags | metabase, bi, business-intelligence, dashboards, analytics, sql, data-visualization |
