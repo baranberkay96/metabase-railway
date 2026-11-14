@@ -11,6 +11,7 @@ HEAP_PERCENT=60
 SMALL_LIMIT_MB=2048        # below this, the JVM's non-heap memory (metaspace, code cache) needs a larger share
 SMALL_HEAP_PERCENT=40
 SMALL_JVM_FLAGS="-XX:+UseSerialGC -XX:ReservedCodeCacheSize=128m -XX:MaxDirectMemorySize=64m"
+LARGE_JVM_FLAGS="-XX:+UseG1GC -XX:G1PeriodicGCInterval=120000"   # hand unused heap back to the OS when idle
 HEAP_MIN_MB=256
 HEAP_MAX_MB=2048
 SETUP_WAIT_SECONDS=1200
@@ -34,8 +35,10 @@ configure_heap() {
     extra=" $SMALL_JVM_FLAGS"
   elif [ "$limit_mb" -gt 0 ]; then
     heap=$((limit_mb * HEAP_PERCENT / 100))
+    extra=" $LARGE_JVM_FLAGS"
   else
     heap=$HEAP_MAX_MB
+    extra=" $LARGE_JVM_FLAGS"
   fi
   [ "$heap" -lt "$HEAP_MIN_MB" ] && heap=$HEAP_MIN_MB
   [ "$heap" -gt "$HEAP_MAX_MB" ] && heap=$HEAP_MAX_MB

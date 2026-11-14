@@ -26,7 +26,8 @@
 
 ## Launcher (`services/metabase/railway/start.sh`)
 
-1. **Heap.** Reads the cgroup memory limit and passes `-Xmx` = 60% of it, clamped to 256 MB–4 GB (Railway's Hobby/Pro limits are far above what Metabase needs, so the cap keeps idle RAM, and the bill, reasonable). A `-Xmx` or `MaxRAMPercentage` in `JAVA_OPTS` wins. Below 900 MiB it logs a warning.
+1. **Heap.** Reads the cgroup memory limit. Below 2 GB: `-Xmx` = 40% of it plus `-XX:+UseSerialGC -XX:ReservedCodeCacheSize=128m -XX:MaxDirectMemorySize=64m` (Metabase's metaspace and code cache need ~0.4–0.5 GB outside the heap). From 2 GB: 60%, capped at 2 GB (Railway's Hobby limit is 8 GB; with a 4 GB heap Metabase idled at ~1.9 GB, which users pay for). Minimum 256 MB. A `-Xmx` or `MaxRAMPercentage` in `JAVA_OPTS` wins. Below 900 MiB it logs a warning.
+   - Measured 2026-11-14: with 60% (571 MiB heap) under the Trial limit (953 MiB) the container was OOM-killed during start-up in a loop; with the small-limit settings (381 MiB heap) it starts in ~55 s, completes setup and runs sample queries.
 2. **Encryption key guard.** `MB_ENCRYPTION_SECRET_KEY` shorter than 16 characters (Metabase would refuse it) is replaced by its SHA-256, with a warning (STANDARD rule 29).
 3. Starts the image's `/app/run_metabase.sh` (unchanged: drops to the `metabase` user, `MB_JETTY_HOST=0.0.0.0`).
 4. **Automatic setup** (`METABASE_AUTO_SETUP=true`): polls `127.0.0.1:3000/api/health` every second; when Metabase answers and `has-user-setup` is false, it reads the setup token from `/api/session/properties` and posts `/api/setup` with `METABASE_ADMIN_EMAIL` / `METABASE_ADMIN_PASSWORD` and `METABASE_SITE_NAME`. This happens within about a second of Metabase becoming healthy, i.e. before or together with Railway's first passing healthcheck, so the public URL never serves an open setup wizard in practice.
@@ -64,17 +65,23 @@ Helper variables use the `METABASE_` prefix, not `MB_`: Metabase maps every `MB_
 | Postgres | Public TCP proxy on the app DB | Private network only |
 | Telemetry | On | Anonymous tracking off |
 
-## Resource profile and cost
+## Resource profile and cost (RAM $10/GB-mo, vCPU $20/mo, volume $0.15/GB-mo)
 
-Filled from the Railway measurement (see README): Metabase ~0.75 GB idle, Postgres ~0.1 GB. Idle ≈ $9–10/month; a team with a few dashboards ≈ $15–30/month. Trial (1 GB/service) works for light use; Free (0.5 GB/service) cannot run Metabase.
+| Service | Idle RAM (measured) | Typical | Idle CPU |
+|---|---|---|---|
+| Metabase, Hobby limit (8 GB → 2 GB heap) | {HOBBY} | 1.5–2.5 GB | ~0.01 |
+| Metabase, Trial limit (1 GB → 381 MiB heap) | ~0.95 GB (fills the limit) | — | ~0.01 |
+| Postgres | 0.1–0.2 GB | 0.2–0.4 GB | <0.01 |
+
+Idle on Hobby ≈ {COST}/month; a team with regular dashboards ≈ $20–35/month. Trial (1 GB/service) works for light use; Free (0.5 GB/service) cannot run Metabase.
 
 ## Verification checklist
 
-- [ ] `Metabase` SUCCESS, `/api/health` 200, log shows "Setup: administrator … created".
-- [ ] `/api/session/properties` shows `has-user-setup: true` and no setup token.
-- [ ] Login with the generated credentials works; a guessed password for `admin@example.com` fails.
-- [ ] Sample Database is listed and a table can be queried.
-- [ ] Redeploy: dashboards and users persist.
+- [x] `Metabase` SUCCESS, `/api/health` 200, log shows "Setup: administrator … created" ~1 s after "Initialization COMPLETE".
+- [x] `/api/session/properties` shows `has-user-setup: true` and no setup token.
+- [x] Login with the generated credentials works (superuser); a guessed password for `admin@example.com` gets 401.
+- [x] Sample Database is listed; `SELECT COUNT(*) FROM ORDERS` returns 18,760; heavier joins run at the 1 GB limit.
+- [x] Redeploy: the admin persists ("already has an administrator; nothing to do").
 
 ## Open questions
 
