@@ -8,6 +8,9 @@
 set -u
 
 HEAP_PERCENT=60
+SMALL_LIMIT_MB=2048        # below this, the JVM's non-heap memory (metaspace, code cache) needs a larger share
+SMALL_HEAP_PERCENT=40
+SMALL_JVM_FLAGS="-XX:+UseSerialGC -XX:ReservedCodeCacheSize=128m -XX:MaxDirectMemorySize=64m"
 HEAP_MIN_MB=256
 HEAP_MAX_MB=2048
 SETUP_WAIT_SECONDS=1200
@@ -25,7 +28,11 @@ configure_heap() {
   if [[ "$limit" =~ ^[0-9]+$ ]] && [ "$limit" -lt $((1024 * 1024 * 1024 * 1024)) ]; then
     limit_mb=$((limit / 1024 / 1024))
   fi
-  if [ "$limit_mb" -gt 0 ]; then
+  local extra=""
+  if [ "$limit_mb" -gt 0 ] && [ "$limit_mb" -lt "$SMALL_LIMIT_MB" ]; then
+    heap=$((limit_mb * SMALL_HEAP_PERCENT / 100))
+    extra=" $SMALL_JVM_FLAGS"
+  elif [ "$limit_mb" -gt 0 ]; then
     heap=$((limit_mb * HEAP_PERCENT / 100))
   else
     heap=$HEAP_MAX_MB
@@ -35,9 +42,9 @@ configure_heap() {
   if [ "$limit_mb" -gt 0 ] && [ "$limit_mb" -lt 900 ]; then
     log "WARNING: only ${limit_mb} MiB of memory; Metabase needs about 1 GB and may run out of memory."
   fi
-  JAVA_OPTS="${JAVA_OPTS:-} -Xmx${heap}m"
+  JAVA_OPTS="${JAVA_OPTS:-} -Xmx${heap}m${extra}"
   export JAVA_OPTS
-  log "Memory limit ${limit_mb:-unknown} MiB -> Java heap ${heap} MiB (override with JAVA_OPTS=-Xmx...)"
+  log "Memory limit ${limit_mb:-unknown} MiB -> Java heap ${heap} MiB${extra} (override with JAVA_OPTS=-Xmx...)"
 }
 
 sanitize_encryption_key() {
